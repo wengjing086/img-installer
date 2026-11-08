@@ -34,6 +34,8 @@ else
 fi
 
 mkdir -p output
+# 记录本次构建的固件版本，供 workflow 生成 Release 标题/摘要
+echo "$FILE_NAME" > output/version.txt
 docker run --privileged --rm \
         -v $(pwd)/output:/output \
         -v $(pwd)/supportFiles:/supportFiles:ro \

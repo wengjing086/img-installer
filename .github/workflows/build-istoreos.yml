@@ -1,7 +1,11 @@
-name: "Build iStoreOS 24.10.1 Installer ISO"
+name: "Build iStoreOS Installer ISO (Latest)"
 
 on:
  workflow_dispatch:
+
+# 发布 Release 需要写权限；默认 GITHUB_TOKEN 只有读权限，会报 403
+permissions:
+  contents: write
 
 jobs:
   build-release:
@@ -11,8 +15,8 @@ jobs:
     steps:
 
       - name: "Checking out git repository"
-        uses: actions/checkout@v2
-      
+        uses: actions/checkout@v4
+
       - name: Set executable permissions
         run: |
           chmod +x ${{ github.workspace }}/istoreos.sh
@@ -21,11 +25,19 @@ jobs:
       - name: "Build iStoreOS Installer ISO"
         run: |
           ./istoreos.sh
-      
+
+      - name: "Read firmware version"
+        id: version
+        run: |
+          VERSION=$(cat output/version.txt)
+          echo "file=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "### 本次构建的 iStoreOS 固件: $VERSION" >> "$GITHUB_STEP_SUMMARY"
+
       - name: "Publish"
         uses: softprops/action-gh-release@v2.2.1
         with:
           tag_name: "iStoreOS-Installer-x86_64-ISO"
+          name: "iStoreOS Installer ISO - ${{ steps.version.outputs.file }}"
           body_path: ${{ github.workspace }}/supportFiles/istoreos/info.md
           files: |
             output/istoreos-installer-x86_64.iso
